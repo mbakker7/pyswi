@@ -27,11 +27,10 @@ def fdfresh1d_step(hf, hfold, zeta, zetaold, k, S, Se, zb, zt, Qf, fixed, ghb, r
     top = np.minimum(hf, zt)
     bot = np.maximum(zeta, zb)
     bf = np.maximum(top - bot, 0) # thickness cannot be negative
-    storage1 = S * delx * (hf - hfold) / delt
+    #storage1 = S * delx * (hf - hfold) / delt
+    #storage2 = -S * delx * (zeta - zetaold) / delt
+    storage1 = S * delx * (bf - bfold) / delt
     storage2 = Se * bf * delx * (hf - hfold) / delt
-    storage3 = -S * delx * (zeta - zetaold) / delt
-    #storage1 = S * delx * (bf - bfold) / delt
-    #storage2 = Se * bf * delx * (hf - hfold) / delt
     #bf = (hf - zeta)
     #print(bf)
     #bf = np.minimum(np.maximum(hf, zb), zt) - np.maximum(np.minimum(zeta, zt), zb)
@@ -41,7 +40,7 @@ def fdfresh1d_step(hf, hfold, zeta, zetaold, k, S, Se, zb, zt, Qf, fixed, ghb, r
     C = k * bf / delx
     A = np.diag(C, 1) + np.diag(C, -1)
     A -= np.diag(np.sum(A, 1))
-    rhs = -Qf + storage1 + storage2 + storage3
+    rhs = -Qf + storage1 + storage2
     if ghb is not None:
         for icol, hstar, Cstar in ghb:
             #if (hfold[icol] >= hstar) and (zetaold[icol] <= zt[icol]): # only freshwater outflow when hf > hstar and zeta below top
@@ -89,17 +88,14 @@ def fdsalt1d_step(zeta, zetaold, hf, hfold, k, S, Se, zb, zt, Qs, fixed, ghb, rh
     bs = np.maximum(top - zb, 0) # bs cannot be negative
     hsold = (rhos - rhof) / rhos * zetaold + rhof / rhos * hfold # head in saltwater
     hs = (rhos - rhof) / rhos * zeta + rhof / rhos * hf # head in saltwater
-    #storage1 = S * delx * (bs - bsold) / delt
-    #storage2 = Se * bs * delx * (hs - hsold) / delt
-    storage1 = Se * bs / alphas * delx * (zeta - zetaold) / delt
-    storage2 = Se * bs * rhof / rhos * delx * (hf - hfold) / delt
-    storage3 = S * delx * (zeta - zetaold) / delt
+    storage1 = S * delx * (bs - bsold) / delt
+    storage2 = Se * bs * delx * (hs - hsold) / delt
     bs = np.where(hs[:-1] >= hs[1:], bs[:-1], bs[1:]) # upstream weighing
     bs = np.maximum(1e-3, bs) # make sure at least 1 mm
     C = k * bs / delx
     A = np.diag(C, 1) + np.diag(C, -1)
     A -= np.diag(np.sum(A, 1))
-    rhs = -Qs + storage1 + storage2 + storage3
+    rhs = -Qs + storage1 + storage2
     if ghb is not None:
         #print("hello ghb")
         for icol, hstar, Cstar in ghb:
