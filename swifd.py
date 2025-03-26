@@ -61,10 +61,16 @@ class SwiModel:
     def set_array(self, var, shape):
         if np.isscalar(var):
             var = var * np.ones(shape)
-        elif isinstance(var, list):
+        if isinstance(var, list):
             var = np.reshape(np.array(list), shape)
         else:
-            var = np.reshape(var, shape)
+            if var.ndim == 1:
+                if shape[1] == 1:
+                    var = np.reshape(var, shape)
+                else:
+                    var = var[:, np.newaxis] * np.ones(shape)
+            else:
+                var = np.reshape(var, shape)
         # check shape is correct
         return var
         
